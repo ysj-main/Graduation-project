@@ -1,0 +1,68 @@
+services:
+  # MySQL 서비스
+  db:
+    image: mysql:latest
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user1234
+    ports:
+      - "3306:3306"
+
+  php:
+    build:
+      context: ./web
+      dockerfile: nginx/Dockerfile
+    volumes:
+      - ./web/webApp:/var/www/html
+    restart: always
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./web/nginx:/etc/nginx/conf.d
+      - ./web/webApp:/var/www/html
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    restart: always
+    depends_on:
+      - php
+
+  flask:
+    build:
+      context: ./fds/flask
+    volumes:
+      - ./fds/flask:/app
+      - ./fds/flask/db_info.env:/app/db_info.env
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./fds/flask/db_info.env
+
+  # phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    restart: always
+
+volumes:
+  db_data:
+
+networks:
+  default:
+    name: my-network
+    external: true

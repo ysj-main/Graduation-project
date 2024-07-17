@@ -1,0 +1,11 @@
+Flask
+pandas
+scikit-learn
+matplotlib
+seaborn
+numpy==1.26.4
+catboost==1.2.5
+mysql-connector-python
+firebase-admin
+schedule
+python-dotenv
